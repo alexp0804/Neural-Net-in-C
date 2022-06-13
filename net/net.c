@@ -3,48 +3,80 @@
 #include <stdlib.h>
 #include "net.h"
 
-NeuralNetwork *network_build(int inp, int hid, int out, Matrix *input)
+
+NeuralNetwork *network_build(int input_size,
+                             int hidden_size,
+                             int output_size,
+                             int num_hidden,
+                             Matrix *input)
 {
-    NeuralNetwork *net = (NeuralNetwork *) malloc(sizeof(NeuralNetwork));
+    NeuralNetwork *net = (NeuralNetwork *)  malloc(sizeof(NeuralNetwork));
 
-    net->input_size = inp;
-    // TODO: I think theres a problem with the way I'm specifying the number of layers and the size of each layer.
-    // Currently, those numbers are all the same which is obviously an issue. Need to add a new param for layer size and distinguish that
-    // num layers. Be sure to check following code for any modifications.
-    net->hidden_size = hid;
-    net->output_size = out;
+    net->input_size = input_size;
+    net->hidden_size = hidden_size;
+    net->num_hidden = num_hidden; 
+    net->output_size = output_size;
 
-    // Also, I need to clear up if the values themselves within the hidden layers are already implicitly stored,
-    // or if a new array of matrices is needed. Values contained in the node are not the weights associated with that
-    // node, so I think there's currently an issue.
-
+    // Set the input matrix to the param input
     net->input = input;
-    net->hidden = (Matrix *) malloc(sizeof(Matrix) * (hid + 1));
-    net->bias = (Matrix *) malloc(sizeof(Matrix) * (hid + 1));
-    net->output = (Matrix *) malloc(sizeof(Matrix));
 
-    // Allocate weights connecting the hidden layers
-    net->hidden[0] = *matrix_build(hid, inp);
-    for (int i = 1; i < hid; i++)
-        net->hidden[i] = *matrix_build(hid, hid);
-    net->hidden[hid] = *matrix_build(out, hid);
+    // Create the hidden layers
+    net->hidden = (Matrix *) malloc(sizeof(Matrix) * num_hidden);
+    for (int i = 0; i < num_hidden; i++)
+        net->hidden[i] = *matrix_build(hidden_size, 1); 
 
-    // Allocate the bias matrices
-    for (int i = 0; i < hid; i++)
-        net->bias[i] = *matrix_build(hid, 1);
-    net->bias[hid] = *matrix_build(out, 1);
+    // Create output layer
+    net->output = matrix_build(output_size, 1);
 
-    // Allocate the output matrix
-    net->output = matrix_build(out, 1);
 
-    // Randomize all weights/biases
-    for (int i = 0; i < hid + 1; i++)
+    // Weight matrices
+    net->weights = (Matrix *) malloc(sizeof(Matrix) * (num_hidden + 1));
+    net->weights[0] = *matrix_build(hidden_size, input_size);
+    for (int i = 1; i < num_hidden; i++)
+        net->weights[i] = *matrix_build(hidden_size, hidden_size);
+    net->weights[num_hidden] = *matrix_build(output_size, hidden_size);
+
+    // Bias matrices
+    net->biases = (Matrix *) malloc(sizeof(Matrix) * (num_hidden + 1));
+    for (int i = 0; i < num_hidden; i++)
+        net->biases[i] = *matrix_build(hidden_size, 1);
+    net->biases[num_hidden] = *matrix_build(output_size, 1);
+
+
+    // Randomize weights and biases
+    for (int i = 0; i < num_hidden + 1; i++)
     {
-        matrix_randomize(&net->hidden[i]);
-        matrix_randomize(&net->bias[i]);
+        matrix_randomize(net->weights + i);
+        matrix_randomize(net->biases + i);
     }
 
     return net;
+}
+
+
+void propagate(NeuralNetwork *N)
+{
+    for (int i = 0; i < N->num_hidden + 1; i++)
+    {
+        Matrix *prev = (i == 0) ? N->input : &N->hidden[i-1];
+        printf("%d\n", i);
+        fflush(stdout);
+
+printf("\n\n");
+            matrix_print(&N->weights[i]);
+            matrix_print(prev);
+printf("\n\n");
+
+        Matrix *new = matrix_multiply(&N->weights[i], prev);
+        new = matrix_add(new, &N->biases[i]);
+        matrix_sigmoid(new);
+
+        Matrix *source = (i != N->num_hidden) ? &N->hidden[i] : N->output;
+        matrix_delete(source);
+        source = new;
+
+        matrix_print(new);
+    }
 }
 
 void network_print(NeuralNetwork *N)
@@ -56,5 +88,6 @@ void network_print(NeuralNetwork *N)
         N->output_size
     );
 
+    // TODO Implement this
     matrix_print(N->input);
 }

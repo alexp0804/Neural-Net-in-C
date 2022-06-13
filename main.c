@@ -5,13 +5,15 @@
 #include "net/net.h"
 #include "net/net.c"
 
-// Matrix *matrix_multiply(Matrix *M, Matrix* N);
 
 int main(void)
 {
-    Matrix *input = matrix_build(5, 1);
+    int input_len = 5;
+    Matrix *input = matrix_build(input_len, 1);
     matrix_randomize(input);
-    NeuralNetwork *net = network_build(5, 1, 2, input);
-    printf("Somehow didn't crash!\n");
+    NeuralNetwork *net = network_build(input_len, 3, 1, 2, input);
+    propagate(net);
+
+    printf("Wow! It didn't crash!\n");
     return 0;
 }

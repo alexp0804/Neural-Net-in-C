@@ -79,6 +79,22 @@ void matrix_clear(Matrix *M)
     matrix_fill(M, 0);
 }
 
+// After using this function the N matrix is no longer safe to use.
+void matrix_set(Matrix *M, Matrix *N)
+{
+    if (!M || !N)
+        bad_ref("set");
+
+    if (M->rows != N->rows || M->cols != N->cols)
+        bad_dims("set");
+
+    for (int i = 0; i < M->rows; i++)
+        for (int j = 0; j < M->cols; j++)
+            M->entries[i][j] = N->entries[i][j];
+
+    matrix_delete(N);
+}
+
 Matrix *matrix_copy(Matrix *M)
 {
     if (!M)
@@ -129,7 +145,7 @@ Matrix *matrix_add(Matrix *M, Matrix* N)
     if (M->rows != N->rows || M->cols != N->cols)
         bad_dims("add");
 
-    Matrix *new = matrix_build(M->cols, M->rows);
+    Matrix *new = matrix_build(M->rows, M->cols);
     if (!new)
         bad_mem("add");
 
