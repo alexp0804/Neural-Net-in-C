@@ -46,8 +46,8 @@ NeuralNetwork *network_build(int input_size,
     // Randomize weights and biases
     for (int i = 0; i < num_hidden + 1; i++)
     {
-        matrix_randomize(net->weights + i);
-        matrix_randomize(net->biases + i);
+        matrix_randomize(&net->weights[i]);
+        matrix_randomize(&net->biases[i]);
     }
 
     return net;
@@ -58,28 +58,21 @@ void propagate(NeuralNetwork *N)
 {
     for (int i = 0; i < N->num_hidden + 1; i++)
     {
-        Matrix *prev = (i == 0) ? N->input : &N->hidden[i-1];
-        printf("%d\n", i);
-        fflush(stdout);
+        Matrix *new = matrix_add(
+                        matrix_multiply(
+                                &N->weights[i],
+                                (i == 0) ? N->input : &N->hidden[i-1]
+                        ),
+                      &N->biases[i]);
 
-printf("\n\n");
-            matrix_print(&N->weights[i]);
-            matrix_print(prev);
-printf("\n\n");
-
-        Matrix *new = matrix_multiply(&N->weights[i], prev);
-        new = matrix_add(new, &N->biases[i]);
         matrix_sigmoid(new);
 
-        Matrix *source = (i != N->num_hidden) ? &N->hidden[i] : N->output;
-        matrix_delete(source);
-        source = new;
-
-        matrix_print(new);
+        // Replace this layers nodes with result from above
+        matrix_set((i != N->num_hidden) ? &N->hidden[i] : N->output, new);
     }
 }
 
-void network_print(NeuralNetwork *N)
+void network_print(NeuralNetwork *N, int only_nodes)
 {
     printf(
         "Network Info:\nInput size: %d\t# hidden layers: %d\tOutput size: %d\n",
@@ -88,6 +81,28 @@ void network_print(NeuralNetwork *N)
         N->output_size
     );
 
-    // TODO Implement this
+    printf("Input Layer:\n");
     matrix_print(N->input);
+    for (int i = 0; i < N->num_hidden; i++)
+    {
+        if (!only_nodes)
+        {
+            printf("Weights from Layer %d to Layer %d\n", i, i+1);
+            matrix_print(&N->weights[i]);
+            printf("Biases for Layer %d\n", i+1);
+            matrix_print(&N->biases[i]);
+        }
+        printf("Nodes for Layer %d\n", i+1);
+        matrix_print(&N->hidden[i]);
+    }
+
+    if (!only_nodes)
+    {
+        printf("Weights from Layer %d to Output Layer\n", N->num_hidden);
+        matrix_print(&N->weights[N->num_hidden]);
+        printf("Biases for Output Layer\n");
+        matrix_print(&N->biases[N->num_hidden]);
+    }
+    printf("Output Layer:\n");
+    matrix_print(N->output);
 }

@@ -10,3 +10,5 @@ typedef struct {
 } NeuralNetwork;
 
 NeuralNetwork *build(int inp, int hid, int out, Matrix *input);
+void propogate(NeuralNetwork *N);
+void network_print(NeuralNetwork *N, int only_nodes);
