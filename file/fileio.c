@@ -1,14 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
 
-#include "../net/net.h"
-
-typedef struct {
-    Matrix *image;
-    int label;
-} Example;
-
-FILE *image_file, *label_file;
+#include "fileio.h"
 
 void bad_file(char *where)
 {
@@ -96,10 +87,6 @@ Example *training_data_read()
     read_int(image_file, &rows);
     read_int(image_file, &cols);
     // Image file stream is now at first pixel of first image
-
-    // TODO: remove this line
-    // So I don't accidentally load 60,000 Examples into memory until it works...
-    num_examples = 150;
 
     Example * examples = (Example *) malloc(num_examples * sizeof(Example));
     if (!examples)

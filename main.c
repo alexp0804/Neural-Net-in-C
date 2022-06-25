@@ -5,7 +5,8 @@
 #include "net/net.h"
 #include "net/net.c"
 
-#include "data/fileio.c"
+#include "file/fileio.h"
+#include "file/fileio.c"
 
 int main(void)
 {
@@ -18,13 +19,6 @@ int main(void)
     // NeuralNetwork *net = network_build(input_size, hidden_size, output_size, num_hidden, input);
 
     Example * ex = training_data_read();
-
-    for (int i = 0; i < 150; i++)
-    {
-        printf("Label: %d\n", ex[i].label);
-        matrix_print(ex[i].image);
-    }
-    
 
     printf("\nWow! It didn't crash!\n");
 
