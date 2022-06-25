@@ -55,7 +55,7 @@ void matrix_print(Matrix *M)
     {
         for (int j = 0; j < M->cols; j++)
         {
-            printf("%5.2f ", M->entries[i][j]);
+            printf("%3.0f ", M->entries[i][j]);
         }
         printf("\n");
     }
