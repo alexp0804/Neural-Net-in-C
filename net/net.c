@@ -4,13 +4,14 @@
 #include "net.h"
 
 
-NeuralNetwork *network_build(int input_size,
+neural_network *network_build(int input_size,
                              int hidden_size,
                              int output_size,
                              int num_hidden,
-                             Matrix *input)
+                             matrix *input,
+                             void (*act)(matrix *))
 {
-    NeuralNetwork *net = (NeuralNetwork *)  malloc(sizeof(NeuralNetwork));
+    neural_network *net = (neural_network *)  malloc(sizeof(neural_network));
 
     net->input_size = input_size;
     net->hidden_size = hidden_size;
@@ -21,27 +22,25 @@ NeuralNetwork *network_build(int input_size,
     net->input = input;
 
     // Create the hidden layers
-    net->hidden = (Matrix *) malloc(sizeof(Matrix) * num_hidden);
+    net->hidden = (matrix *) malloc(sizeof(matrix) * num_hidden);
     for (int i = 0; i < num_hidden; i++)
         net->hidden[i] = *matrix_build(hidden_size, 1); 
 
     // Create output layer
     net->output = matrix_build(output_size, 1);
 
-
     // Weight matrices
-    net->weights = (Matrix *) malloc(sizeof(Matrix) * (num_hidden + 1));
+    net->weights = (matrix *) malloc(sizeof(matrix) * (num_hidden + 1));
     net->weights[0] = *matrix_build(hidden_size, input_size);
     for (int i = 1; i < num_hidden; i++)
         net->weights[i] = *matrix_build(hidden_size, hidden_size);
     net->weights[num_hidden] = *matrix_build(output_size, hidden_size);
 
     // Bias matrices
-    net->biases = (Matrix *) malloc(sizeof(Matrix) * (num_hidden + 1));
+    net->biases = (matrix *) malloc(sizeof(matrix) * (num_hidden + 1));
     for (int i = 0; i < num_hidden; i++)
         net->biases[i] = *matrix_build(hidden_size, 1);
     net->biases[num_hidden] = *matrix_build(output_size, 1);
-
 
     // Randomize weights and biases
     for (int i = 0; i < num_hidden + 1; i++)
@@ -50,29 +49,39 @@ NeuralNetwork *network_build(int input_size,
         matrix_randomize(&net->biases[i]);
     }
 
+    // Set activation function
+    net->activation_func = act;
+
     return net;
 }
 
 
-void propagate(NeuralNetwork *N)
+void propagate(neural_network *N)
 {
     for (int i = 0; i < N->num_hidden + 1; i++)
     {
-        Matrix *new = matrix_add(
+        // Multiply this nodes values with the weights, add on the biases
+        matrix *new = matrix_add(
                         matrix_multiply(
                                 &N->weights[i],
                                 (i == 0) ? N->input : &N->hidden[i-1]
                         ),
-                      &N->biases[i]);
+                        &N->biases[i]
+                      );
 
-        matrix_sigmoid(new);
+        // Run the result through an activation function, the chosen one if not
+        // at the end of the net. If it's the last layer, use softmax.
+        if (i != N->num_hidden)
+            N->activation_func(new);
+        else
+            matrix_softmax(new);
 
         // Replace this layers nodes with result from above
         matrix_set((i != N->num_hidden) ? &N->hidden[i] : N->output, new);
     }
 }
 
-void network_print(NeuralNetwork *N, int only_nodes)
+void network_print(neural_network *N, int only_nodes)
 {
     printf(
         "Network Info:\nInput size: %d\t# hidden layers: %d\tOutput size: %d\n",

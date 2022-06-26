@@ -7,12 +7,12 @@
 // Helper functions for bad requests
 void bad_ref(char *where)
 {
-    fprintf(stderr, "Invalid Matrix reference in matrix_%s()\n", where);
+    fprintf(stderr, "Invalid matrix reference in matrix_%s()\n", where);
     exit(1);
 }
 void bad_dims(char *where)
 {
-    fprintf(stderr, "Invalid Matrix dimensions in matrix_%s()\n", where);
+    fprintf(stderr, "Invalid matrix dimensions in matrix_%s()\n", where);
     exit(1);
 }
 void bad_mem(char *where)
@@ -21,9 +21,9 @@ void bad_mem(char *where)
     exit(1);
 }
 
-Matrix *matrix_build(int row, int col)
+matrix *matrix_build(int row, int col)
 {
-    Matrix * M = (Matrix *) malloc(sizeof(Matrix));
+    matrix * M = (matrix *) malloc(sizeof(matrix));
     M->rows = row, M->cols = col;
 
     M->entries = (double **) malloc(sizeof(double *) * row);
@@ -33,7 +33,7 @@ Matrix *matrix_build(int row, int col)
     return M;
 }
 
-void matrix_delete(Matrix *M)
+void matrix_delete(matrix *M)
 {
     if (!M)
         bad_ref("delete");
@@ -45,7 +45,7 @@ void matrix_delete(Matrix *M)
     free(M);
 }
 
-void matrix_print(Matrix *M)
+void matrix_print(matrix *M)
 {
     if (!M)
         bad_ref("print");
@@ -55,14 +55,14 @@ void matrix_print(Matrix *M)
     {
         for (int j = 0; j < M->cols; j++)
         {
-            printf("%3.0f ", M->entries[i][j]);
+            printf("%3.4f ", M->entries[i][j]);
         }
         printf("\n");
     }
     printf("\n");
 }
 
-void matrix_fill(Matrix *M, double value)
+void matrix_fill(matrix *M, double value)
 {
     if (!M)
         bad_ref("fill"); 
@@ -72,7 +72,7 @@ void matrix_fill(Matrix *M, double value)
             M->entries[i][j] = value;
 }
 
-void matrix_clear(Matrix *M)
+void matrix_clear(matrix *M)
 {
     if (!M)
         bad_ref("clear");
@@ -81,7 +81,7 @@ void matrix_clear(Matrix *M)
 }
 
 // After using this function the N matrix is no longer safe to use.
-void matrix_set(Matrix *M, Matrix *N)
+void matrix_set(matrix *M, matrix *N)
 {
     if (!M || !N)
         bad_ref("set");
@@ -96,12 +96,12 @@ void matrix_set(Matrix *M, Matrix *N)
     matrix_delete(N);
 }
 
-Matrix *matrix_copy(Matrix *M)
+matrix *matrix_copy(matrix *M)
 {
     if (!M)
         bad_ref("copy");
 
-    Matrix *copy = matrix_build(M->rows, M->cols);
+    matrix *copy = matrix_build(M->rows, M->cols);
     if (!copy)
         bad_mem("copy");
     
@@ -112,12 +112,12 @@ Matrix *matrix_copy(Matrix *M)
     return copy;
 }
 
-Matrix *matrix_flatten(Matrix *M)
+matrix *matrix_flatten(matrix *M)
 {
     if (!M)
         bad_ref("flatten");
     
-    Matrix *new = matrix_build(M->rows * M->cols, 1);
+    matrix *new = matrix_build(M->rows * M->cols, 1);
     if (!new)
         bad_mem("flatten");
     
@@ -128,7 +128,7 @@ Matrix *matrix_flatten(Matrix *M)
     return new;
 }
 
-void matrix_scale(Matrix *M, double s)
+void matrix_scale(matrix *M, double s)
 {
     if (!M)
         bad_ref("scale");
@@ -138,7 +138,7 @@ void matrix_scale(Matrix *M, double s)
             M->entries[i][j] *= s;
 }
 
-Matrix *matrix_add(Matrix *M, Matrix* N)
+matrix *matrix_add(matrix *M, matrix* N)
 {
     if (!M || !N)
         bad_ref("add");
@@ -146,7 +146,7 @@ Matrix *matrix_add(Matrix *M, Matrix* N)
     if (M->rows != N->rows || M->cols != N->cols)
         bad_dims("add");
 
-    Matrix *new = matrix_build(M->rows, M->cols);
+    matrix *new = matrix_build(M->rows, M->cols);
     if (!new)
         bad_mem("add");
 
@@ -157,7 +157,7 @@ Matrix *matrix_add(Matrix *M, Matrix* N)
     return new;
 }
 
-void matrix_add_scalar(Matrix *M, double s)
+void matrix_add_scalar(matrix *M, double s)
 {
     if (!M)
         bad_ref("add_scalar");
@@ -168,7 +168,7 @@ void matrix_add_scalar(Matrix *M, double s)
 }
 
 // M - N
-Matrix *matrix_subtract(Matrix *M, Matrix *N)
+matrix *matrix_subtract(matrix *M, matrix *N)
 {
     if (!M || !N)
         bad_ref("subtract");
@@ -176,7 +176,7 @@ Matrix *matrix_subtract(Matrix *M, Matrix *N)
     if (M->rows != N->rows || M->cols != N->cols)
         bad_dims("subtract");
 
-    Matrix *new = matrix_build(M->cols, M->rows);
+    matrix *new = matrix_build(M->cols, M->rows);
     if (!new)
         bad_mem("subtract");
 
@@ -187,7 +187,7 @@ Matrix *matrix_subtract(Matrix *M, Matrix *N)
     return new;
 }
 
-Matrix *matrix_multiply(Matrix *M, Matrix* N)
+matrix *matrix_multiply(matrix *M, matrix* N)
 {
     if (!M || !N)
         bad_ref("multiply");
@@ -195,7 +195,7 @@ Matrix *matrix_multiply(Matrix *M, Matrix* N)
     if (M->cols != N->rows)
         bad_dims("multiply");
 
-    Matrix *new = matrix_build(M->rows, N->cols);
+    matrix *new = matrix_build(M->rows, N->cols);
     if (!new)
         bad_mem("multiply");
 
@@ -212,7 +212,7 @@ double sigmoid(double x)
     return 1 / (1 + exp(-x));
 }
 
-void matrix_sigmoid(Matrix *M)
+void matrix_sigmoid(matrix *M)
 {
     if (!M)
         bad_ref("sigmoid");
@@ -222,8 +222,32 @@ void matrix_sigmoid(Matrix *M)
             M->entries[i][j] = sigmoid(M->entries[i][j]);
 }
 
-// [-1, 1)
-void matrix_randomize(Matrix *M)
+void matrix_softmax(matrix *M)
+{
+    double norm_term = 0;
+
+    // M must be a column matrix
+    if (M->cols != 1) return;
+
+    for (int i = 0; i < M->rows; i++)
+        norm_term += exp(M->entries[i][0]);
+    
+    printf("%f\n", norm_term);
+
+    for (int i = 0; i < M->rows; i++)
+        M->entries[i][0] = exp(M->entries[i][0]) / norm_term;
+}
+
+// Returns a random floating point value from [0, x]
+float rand_float(int x)
+{
+    // You shouldn't have called this function!
+    if (x <= 0) return 0;
+
+    return (float) rand() / (float) (RAND_MAX / x);
+}
+// [-1, 1]
+void matrix_randomize(matrix *M)
 {
     if (!M)
         bad_ref("randomize");
@@ -232,6 +256,6 @@ void matrix_randomize(Matrix *M)
 
     for (int i = 0; i < M->rows; i++)
         for (int j = 0; j < M->cols; j++)
-            M->entries[i][j] = rand() % 2 - 1;
+            M->entries[i][j] = rand_float(2) - 1;
 }
 

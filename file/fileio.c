@@ -88,6 +88,9 @@ Example *training_data_read()
     read_int(image_file, &cols);
     // Image file stream is now at first pixel of first image
 
+    // TODO: Remove this
+    num_examples = 150;
+
     Example * examples = (Example *) malloc(num_examples * sizeof(Example));
     if (!examples)
         bad_mem("training_data_read()");

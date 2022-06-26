@@ -6,7 +6,7 @@
 #include "../net/net.h"
 
 typedef struct {
-    Matrix *image;
+    matrix *image;
     int label;
 } Example;
 
