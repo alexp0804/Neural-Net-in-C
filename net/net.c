@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "net.h"
 
-
 neural_network *network_build(int input_size,
                              int hidden_size,
                              int output_size,
@@ -56,7 +55,7 @@ neural_network *network_build(int input_size,
 }
 
 
-void propagate(neural_network *N)
+void network_propagate(neural_network *N)
 {
     for (int i = 0; i < N->num_hidden + 1; i++)
     {
@@ -79,6 +78,29 @@ void propagate(neural_network *N)
         // Replace this layers nodes with result from above
         matrix_set((i != N->num_hidden) ? &N->hidden[i] : N->output, new);
     }
+}
+
+// Output should be the softmax'd probabilities, and
+// desired output should be in one-hot-encoding.
+// Both should be column vectors.
+float cross_entropy_loss(matrix *output, matrix *desired_output)
+{
+    // Loss = -sum(t_i * log(p(x_i))) where t_i in desired_output and p(x_i) in output
+
+    float loss = 0;
+
+    for (int i = 0; i < output->rows; i++)
+        loss += desired_output->entries[i][0] * log2(output->entries[i][0]);
+
+    return -loss;
+}
+
+void network_train(example * examples, int num_examples)
+{
+    // Some example batch sizes
+    // [5, 10, 50, 100, 300, 500, 1000, 10000]
+    int batch_size = 100;
+    return;
 }
 
 void network_print(neural_network *N, int only_nodes)

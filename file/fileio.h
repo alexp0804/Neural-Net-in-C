@@ -7,8 +7,9 @@
 
 typedef struct {
     matrix *image;
+    matrix *label_vector;
     int label;
-} Example;
+} example;
 
 FILE *image_file, *label_file;
 
@@ -17,5 +18,5 @@ int reverse_int(int i);
 void read_int(FILE *file, int *x);
 int open_files(char *image_path, char *label_path);
 void close_files();
-Example *create_example(int rows, int cols);
-Example *training_data_read();
+example *create_example(int rows, int cols);
+example *training_data_read();

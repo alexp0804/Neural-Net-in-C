@@ -33,8 +33,6 @@ int open_files(char *image_path, char *label_path)
 {
     image_file = fopen(image_path, "r");
     label_file = fopen(label_path, "r");
-
-    printf("%d\n%d\n", !image_file, !label_file);
     
     // Returns true if both successful, false otherwise.
     return !(!image_file || !label_file);
@@ -46,19 +44,7 @@ void close_files()
     fclose(label_file);
 }
 
-Example *create_example(int rows, int cols)
-{
-    Example *example = malloc(sizeof(Example));
-    if (!example)
-        bad_mem("create_example()");
-
-    example->image = matrix_build(rows * cols, 1);
-    example->label = -1;
-
-    return example;
-}
-
-Example *training_data_read()
+example *training_data_read()
 {
     int opened = open_files("./data/train-images-idx3-ubyte",
                             "./data/train-labels-idx1-ubyte");
@@ -91,7 +77,7 @@ Example *training_data_read()
     // TODO: Remove this
     num_examples = 150;
 
-    Example * examples = (Example *) malloc(num_examples * sizeof(Example));
+    example * examples = (example *) malloc(num_examples * sizeof(example));
     if (!examples)
         bad_mem("training_data_read()");
 
@@ -99,6 +85,8 @@ Example *training_data_read()
     {
         // Read label for this example
         fread(&examples[i].label, sizeof(unsigned char), 1, label_file);
+
+        examples[i].label_vector = matrix_build(10, 1);
         examples[i].image = matrix_build(rows, cols);
 
         // Copy image data into the matrix for this example

@@ -12,21 +12,17 @@ int main(void)
 {
     int input_size = 728, hidden_size = 32, output_size = 10, num_hidden = 3;
 
-    // int input_size = 1, hidden_size = 1, output_size = 2, num_hidden = 1;
+    neural_network *net = network_build(
+                              input_size,
+                              hidden_size,
+                              output_size,
+                              num_hidden,
+                              NULL,
+                              &matrix_sigmoid
+                          );
 
-    // matrix *input = matrix_build(input_size, 1);
-    // matrix_randomize(input);
-
-
-
-    // neural_network *net = network_build(
-    //                           input_size,
-    //                           hidden_size,
-    //                           output_size,
-    //                           num_hidden,
-    //                           input,
-    //                           &matrix_sigmoid
-    //                       );
+    // example *examples = training_data_read();
+    // network_train(examples, 1);
 
     // printf("Before propagating\n");
     // network_print(net, 0);
@@ -35,7 +31,6 @@ int main(void)
     // printf("After propagating\n");
     // network_print(net, 1);
 
-    // Example * ex = training_data_read();
 
     // for (int i = 0; i < 150; i++)
     // {
@@ -43,7 +38,7 @@ int main(void)
     //     matrix_print(ex[i].image);
     // }
 
-    printf("\nWow, it didn't crash.\n");
+    // printf("\nWow, it didn't crash.\n");
 
     return 0;
 }
